@@ -5,16 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(FavoriteWordApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class FavoriteWordApp extends StatelessWidget {
+  const FavoriteWordApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => MyAppState(),//todo 看不懂
+      create: (context) => FavoriteWordAppState(),//todo 看不懂
       child: MaterialApp(
         title: 'Namer App',
         theme: ThemeData(
@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyAppState extends ChangeNotifier {
+class FavoriteWordAppState extends ChangeNotifier {
   var current = WordPair.random();
   var history = <WordPair>[];
 
@@ -161,7 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
 class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
+    var appState = context.watch<FavoriteWordAppState>();
     var pair = appState.current;
 
     IconData icon;
@@ -255,7 +255,7 @@ class FavoritesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var theme = Theme.of(context);
-    var appState = context.watch<MyAppState>();
+    var appState = context.watch<FavoriteWordAppState>();
 
     if (appState.favorites.isEmpty) {
       return Center(
@@ -309,7 +309,7 @@ class HistoryListView extends StatefulWidget {
 }
 
 class _HistoryListViewState extends State<HistoryListView> {
-  /// Needed so that [MyAppState] can tell [AnimatedList] below to animate
+  /// Needed so that [FavoriteWordAppState] can tell [AnimatedList] below to animate
   /// new items.
   final _key = GlobalKey();
 
@@ -325,7 +325,7 @@ class _HistoryListViewState extends State<HistoryListView> {
 
   @override
   Widget build(BuildContext context) {
-    final appState = context.watch<MyAppState>();
+    final appState = context.watch<FavoriteWordAppState>();
     appState.historyListKey = _key;
 
     return ShaderMask(
