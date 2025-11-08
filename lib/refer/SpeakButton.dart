@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const SpeakApp());
-}
+// void main() {
+//   runApp(const SpeakApp());
+// }
 
 class SpeakApp extends StatelessWidget {
   const SpeakApp({super.key});

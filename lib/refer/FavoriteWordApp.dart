@@ -4,9 +4,9 @@ import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-void main() {
-  runApp(FavoriteWordApp());
-}
+// void main() {
+//   runApp(FavoriteWordApp());
+// }
 
 class FavoriteWordApp extends StatelessWidget {
   const FavoriteWordApp({super.key});
@@ -14,7 +14,7 @@ class FavoriteWordApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => FavoriteWordAppState(),//todo 看不懂
+      create: (context) => FavoriteWordAppState(),// todo 看不懂
       child: MaterialApp(
         title: 'Namer App',
         theme: ThemeData(
@@ -38,7 +38,7 @@ class FavoriteWordAppState extends ChangeNotifier {
     var animatedList = historyListKey?.currentState as AnimatedListState?;
     animatedList?.insertItem(0);
     current = WordPair.random();
-    notifyListeners(); //todo 看不懂
+    notifyListeners();
   }
 
   var favorites = <WordPair>[];
