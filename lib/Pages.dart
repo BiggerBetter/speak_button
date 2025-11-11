@@ -34,9 +34,9 @@ class _PagesState extends State<Pages> {
 
   final FlutterTts _tts = FlutterTts();
 
-  Offset _pos1 = const Offset(0, 0); // todo 看不懂
-  Offset _pos2 = const Offset(0, 0);// todo 看不懂
-  bool _didInitPosition = false;// todo 看不懂
+  Offset _pos1 = const Offset(0, 0);
+  Offset _pos2 = const Offset(0, 0);
+  bool _didInitPosition = false;
   Size _size1 = Size.zero; // 实际渲染后的尺寸
   Size _size2 = Size.zero; // 实际渲染后的尺寸
 
