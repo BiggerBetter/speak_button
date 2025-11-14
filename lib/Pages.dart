@@ -27,43 +27,49 @@ class Pages extends StatefulWidget {
 }
 
 class _PagesState extends State<Pages> {
-  final TextEditingController _controller1 =
-      TextEditingController(text: '这是属于我们的光荣');
-  final TextEditingController _controller2 =
-      TextEditingController(text: '这是属于我们的光荣');
+  final List<TextEditingController> _controllers = [];
 
   final FlutterTts _tts = FlutterTts();
 
-  Offset _pos1 = const Offset(0, 0);
-  Offset _pos2 = const Offset(0, 0);
   bool _didInitPosition = false;
-  Size _size1 = Size.zero; // 实际渲染后的尺寸
-  Size _size2 = Size.zero; // 实际渲染后的尺寸
+  final List<Offset> _positions = [];
+  final List<Size> _sizes = [];
 
   @override
   void initState() {
     super.initState();
-    _configureTts(); // todo 应该是这个功能需要一个初始配置
+    _configureTts();
+    _addBundle();
   }
 
-  Future<void> _configureTts() async { // todo Future是什么，async是什么
+  Future<void> _configureTts() async {
     await _tts.setLanguage('zh-CN');
     await _tts.setVolume(1.0);
     await _tts.setSpeechRate(0.4); // 速度
     await _tts.setPitch(1.0); // 音高
   }
 
-  Future<void> _speak(String text) async {// todo 为什么异步呢
+  Future<void> _speak(String text) async {
     final t = text.trim();
     if (t.isEmpty) return;
     await _tts.stop();
     await _tts.speak(t);
   }
 
+  void _addBundle() {
+    setState(() {
+      _controllers.add(TextEditingController(text: '这是属于我们的光荣'));
+      _positions.add(Offset.zero);
+      _sizes.add(Size.zero);
+      _didInitPosition = false; // 让下次 build 重新计算初始位置
+    });
+  }
+
   @override
-  void dispose() { // todo 这个是解构方法吗
-    _controller1.dispose();
-    _controller2.dispose();
+  void dispose() {
+    for (final c in _controllers) {
+      c.dispose();
+    }
     _tts.stop();
     super.dispose();
   }
@@ -71,60 +77,52 @@ class _PagesState extends State<Pages> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LayoutBuilder( // 会算算排布的位置参数，返回一个stack
+      body: LayoutBuilder(
         builder: (context, constraints) {
-          final double textBoxHeight = constraints.maxHeight / 5; // 每个编辑框占可用高度的 1/5
-          final double boxWidth = constraints.maxWidth * 0.3; // 适度留白
+          final double textBoxHeight = constraints.maxHeight / 5;
+          final double boxWidth = constraints.maxWidth * 0.3;
 
-          // 初始位置：水平居中，垂直按顺序放置两个
           if (!_didInitPosition) {
             final double left = (constraints.maxWidth - boxWidth) / 2;
-            final double top1 = 40;
-            final double top2 = top1 + (textBoxHeight + 80); // 预估初始间距，后续用真实尺寸约束
-            _pos1 = Offset(left, top1);
-            _pos2 = Offset(left, top2);
+            final double topStart = 40;
+            for (int i = 0; i < _controllers.length; i++) {
+              final double top = topStart + i * (textBoxHeight + 80);
+              _positions[i] = Offset(left, top);
+            }
             _didInitPosition = true;
           }
 
+          final List<Widget> bundles = [];
+          for (int i = 0; i < _controllers.length; i++) {
+            bundles.add(
+              _DraggableBundle(
+                leftTop: _positions[i],
+                width: boxWidth,
+                textHeight: textBoxHeight,
+                controller: _controllers[i],
+                onPlay: () => _speak(_controllers[i].text),
+                onDrag: (delta) {
+                  setState(() {
+                    _positions[i] = _clamp(_positions[i] + delta, _sizes[i], constraints);
+                  });
+                },
+                onSized: (size) {
+                  if (_sizes[i] != size) {
+                    setState(() => _sizes[i] = size);
+                  }
+                },
+              ),
+            );
+          }
+
           return Stack(
-            children: [
-              _DraggableBundle(
-                leftTop: _pos1,
-                width: boxWidth,
-                textHeight: textBoxHeight,
-                controller: _controller1,
-                onPlay: () => _speak(_controller1.text),
-                onDrag: (delta) {
-                  setState(() {
-                    _pos1 = _clamp(_pos1 + delta, _size1, constraints);
-                  });
-                },
-                onSized: (size) {
-                  if (_size1 != size) {
-                    setState(() => _size1 = size);
-                  }
-                },
-              ),
-              _DraggableBundle(
-                leftTop: _pos2,
-                width: boxWidth,
-                textHeight: textBoxHeight,
-                controller: _controller2,
-                onPlay: () => _speak(_controller2.text),
-                onDrag: (delta) {
-                  setState(() {
-                    _pos2 = _clamp(_pos2 + delta, _size2, constraints);
-                  });
-                },
-                onSized: (size) {
-                  if (_size2 != size) {
-                    setState(() => _size2 = size);
-                  }
-                },
-              ),
-            ],
+            children: bundles,
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addBundle,
+        child: const Icon(Icons.add),
       ),
     );
   }
