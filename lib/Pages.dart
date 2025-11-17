@@ -1,5 +1,5 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 
 void main() {
   runApp(const PagesApp());
@@ -11,25 +11,23 @@ class PagesApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // debugShowCheckedModeBanner: true,
+      debugShowCheckedModeBanner: false,
       title: 'Pages Demo',
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.blue),
-      home: const Pages(),
+      home: const HomePage(),
     );
   }
 }
 
-class Pages extends StatefulWidget {
-  const Pages({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<Pages> createState() => _PagesState();
+  State<HomePage> createState() => _PagesState();
 }
 
-class _PagesState extends State<Pages> {
+class _PagesState extends State<HomePage> {
   final List<TextEditingController> _controllers = [];
-
-  final FlutterTts _tts = FlutterTts();
 
   bool _didInitPosition = false;
   final List<Offset> _positions = [];
@@ -38,22 +36,39 @@ class _PagesState extends State<Pages> {
   @override
   void initState() {
     super.initState();
-    _configureTts();
     _addBundle();
   }
 
-  Future<void> _configureTts() async {
-    await _tts.setLanguage('zh-CN');
-    await _tts.setVolume(1.0);
-    await _tts.setSpeechRate(0.4); // 速度
-    await _tts.setPitch(1.0); // 音高
-  }
-
   Future<void> _speak(String text) async {
-    final t = text.trim();
-    if (t.isEmpty) return;
-    await _tts.stop();
-    await _tts.speak(t);
+    if (!Platform.isMacOS) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('此示例仅适用于 macOS。')),
+      );
+      return;
+    }
+    try {
+      // 使用 macOS 自带的 `say` 命令发声；
+      // 你也可以传入 -v VoiceName 自定义声音，如 ["-v", "Ting-Ting", text]
+      final result = await Process.run('say', [text]);
+      if (result.exitCode != 0) {
+        // 输出错误信息到控制台，便于调试
+        // ignore: avoid_print
+        print('say failed: ${result.stderr}');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('发音失败，请查看控制台输出。')),
+          );
+        }
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error running say: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('运行 say 出错：$e')),
+        );
+      }
+    }
   }
 
   void _addBundle() {
@@ -70,7 +85,6 @@ class _PagesState extends State<Pages> {
     for (final c in _controllers) {
       c.dispose();
     }
-    _tts.stop();
     super.dispose();
   }
 
